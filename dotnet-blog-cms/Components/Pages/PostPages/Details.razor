@@ -1,0 +1,56 @@
+﻿@page "/posts/details"
+
+@using Microsoft.EntityFrameworkCore
+@using BlogCms.Models
+@using Microsoft.AspNetCore.Components
+@inject IDbContextFactory<BlogCms.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h4>Post</h4>
+    <hr />
+    @if (post is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Title</dt>
+            <dd class="col-sm-10">@post.Title</dd>
+            <dt class="col-sm-2">Summary</dt>
+            <dd class="col-sm-10">@post.Summary</dd>
+            <dt class="col-sm-2">Content</dt>
+            <dd class="col-sm-10">@post.Content</dd>
+            <dt class="col-sm-2">Created</dt>
+            <dd class="col-sm-10">@post.Created</dd>
+            <dt class="col-sm-2">LastUpdated</dt>
+            <dd class="col-sm-10">@post.LastUpdated</dd>
+        </dl>
+        <div>
+            <a href="@($"/posts/edit?id={post.Id}")">Edit</a> |
+            <a href="@($"/posts")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    Post? post;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        post = await context.Posts.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (post is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

@@ -1,0 +1,111 @@
+﻿@page "/Posts/edit"
+
+@using Microsoft.EntityFrameworkCore
+@using BlogCms.Models
+@using Microsoft.AspNetCore.Components
+@inject IDbContextFactory<BlogCms.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Post</h4>
+<hr />
+@if (Post is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Post" OnValidSubmit="UpdatePost" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Post.Id" value="@Post.Id" />
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title:</label>
+                    <InputText id="title" @bind-Value="Post.Title" class="form-control" />
+                    <ValidationMessage For="() => Post.Title" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="summary" class="form-label">Summary:</label>
+                    <InputText id="summary" @bind-Value="Post.Summary" class="form-control" />
+                    <ValidationMessage For="() => Post.Summary" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label">Content:</label>
+                    <InputText id="content" @bind-Value="Post.Content" class="form-control" />
+                    <ValidationMessage For="() => Post.Content" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="created" class="form-label">Created:</label>
+                    <InputDate id="created" @bind-Value="Post.Created" class="form-control" />
+                    <ValidationMessage For="() => Post.Created" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="lastupdated" class="form-label">LastUpdated:</label>
+                    <InputDate id="lastupdated" @bind-Value="Post.LastUpdated" class="form-control" />
+                    <ValidationMessage For="() => Post.LastUpdated" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/posts">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Post? Post { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Post ??= await context.Posts.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Post is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdatePost()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Post!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!PostExists(Post!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/posts");
+    }
+
+    bool PostExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Posts.Any(e => e.Id == id);
+    }
+}
