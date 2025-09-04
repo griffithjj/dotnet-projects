@@ -1,0 +1,13 @@
+﻿services:
+  orderservice:
+    image: orderservice
+    build:
+      context: .
+      dockerfile: src/OrderService/Dockerfile
+
+  productservice:
+    image: productservice
+    build:
+      context: .
+      dockerfile: src/ProductService/Dockerfile
+
